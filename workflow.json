@@ -1,0 +1,923 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a content classification agent. Classify incoming content into one of these types: EMAIL, TASK, GOAL, or DOCUMENT. Analyze the content and return: type (one of email, task, goal, document), urgency (number from 1-10), and summary (brief one-sentence summary). Be precise and consistent."
+        }
+      },
+      "id": "3aab99b5-546b-4bc5-9daa-a6280a48d2b7",
+      "name": "Input Classifier",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        464,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"type\": \"email\", \"urgency\": 8, \"summary\": \"Brief summary of content\"}"
+      },
+      "id": "cabc801b-46c8-4e3b-a827-d73da829daec",
+      "name": "Classification Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "combinator": "and",
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.type }}",
+                    "rightValue": "email",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "email"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.type }}",
+                    "rightValue": "task",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "task"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.type }}",
+                    "rightValue": "goal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "goal"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.type }}",
+                    "rightValue": "document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "document"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5992e446-1cc4-4fae-8bf3-9bce589243ed",
+      "name": "Route by Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.summary }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an email prioritization specialist. Analyze email content and extract: title (clear subject line), summary (concise summary), urgency (1-10 rating based on time sensitivity), and actionItems (array of specific action items required). Focus on identifying deadlines, requests, and required responses."
+        }
+      },
+      "id": "4eb9e936-b314-4970-8cb1-104372343db4",
+      "name": "Email Prioritizer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1264,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"title\": \"Email subject\", \"summary\": \"Brief summary\", \"urgency\": 8, \"actionItems\": [\"Action 1\", \"Action 2\"]}"
+      },
+      "id": "a9519b5d-8764-4c56-90f5-6ec2dc636b3d",
+      "name": "Email Prioritizer Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "id": "8235ed05-5210-4079-9da3-3574c500a398",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1616,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.summary }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a study planning specialist. Break down tasks into actionable steps: title (clear task name), summary (what needs to be accomplished), urgency (1-10 based on deadlines), and actionItems (specific, ordered steps to complete the task). Prioritize based on due dates and complexity."
+        }
+      },
+      "id": "bb67e4d7-7d26-4f61-85aa-7fc62fbbd55b",
+      "name": "Study Planner",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1264,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"title\": \"Task title\", \"summary\": \"Task description\", \"urgency\": 5, \"actionItems\": [\"Step 1\", \"Step 2\"]}"
+      },
+      "id": "3e489176-c94e-4ff5-bcb0-481bad271df8",
+      "name": "Study Planner Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.summary }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a goal tracking specialist. Convert goals into trackable milestones: title (clear goal statement), summary (what success looks like), urgency (1-10 based on timeline), and actionItems (key milestones or checkpoints). Focus on measurable outcomes and realistic timelines."
+        }
+      },
+      "id": "a58e3edf-6c0b-4b3e-9ad3-8cb91bc8f488",
+      "name": "Goal Tracker",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1264,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"title\": \"Goal title\", \"summary\": \"Goal description\", \"urgency\": 7, \"actionItems\": [\"Milestone 1\", \"Milestone 2\"]}"
+      },
+      "id": "a6129ff7-7580-4818-928a-70fa5c40656e",
+      "name": "Goal Tracker Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        1136
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {
+          "joinPages": true
+        }
+      },
+      "id": "229f7ab2-0a3d-4d6e-920f-50890e4aa47e",
+      "name": "Extract From File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a document analysis specialist. Extract actionable information from documents: title (document name or main topic), summary (key points and findings), urgency (1-10 based on time-sensitive content), and actionItems (specific actions, decisions, or follow-ups mentioned). Focus on extracting concrete next steps and responsibilities."
+        }
+      },
+      "id": "f91ff1a5-5200-4ffc-95c5-7f4ef63a5352",
+      "name": "Action Extractor",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1264,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"title\": \"Document title\", \"summary\": \"Document summary\", \"urgency\": 5, \"actionItems\": [\"Action 1\", \"Action 2\"]}"
+      },
+      "id": "9084bdc7-4e20-4fd5-8e1b-5f37e873747d",
+      "name": "Action Extractor Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        1648
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst validated = [];\n\nfor (const item of items) {\n  const data = item.json.output || item.json;\n  \n  const hasTitle = data.title && typeof data.title === \"string\";\n  const hasSummary = data.summary && typeof data.summary === \"string\";\n  const hasUrgency = typeof data.urgency === \"number\" && data.urgency >= 1 && data.urgency <= 10;\n  const hasActions = Array.isArray(data.actionItems) && data.actionItems.length > 0;\n  \n  validated.push({\n    json: {\n      ...data,\n      valid: hasTitle && hasSummary && hasUrgency && hasActions,\n      validationErrors: [\n        !hasTitle ? \"Missing or invalid title\" : null,\n        !hasSummary ? \"Missing or invalid summary\" : null,\n        !hasUrgency ? \"Missing or invalid urgency (1-10)\" : null,\n        !hasActions ? \"Missing or empty actionItems array\" : null\n      ].filter(e => e !== null)\n    }\n  });\n}\n\nreturn validated;"
+      },
+      "id": "2c739b95-0b86-46d8-a390-018fecd53ac9",
+      "name": "Validate Schema",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.urgency }}",
+              "rightValue": 8,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e81e832a-e2b8-440a-933b-808fc5ee9aa9",
+      "name": "Check Urgency",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2064,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "elitaslate@gmail.com",
+        "subject": "=URGENT: Approval Needed - {{ $json.title }}",
+        "message": "=<h2>High Urgency Item Detected</h2><p><strong>Title:</strong> {{ $json.title }}</p><p><strong>Summary:</strong> {{ $json.summary }}</p><p><strong>Urgency:</strong> {{ $json.urgency }}/10</p><h3>Action Items:</h3><ul>{{ $json.actionItems.map(item => \"<li>\" + item + \"</li>\").join(\"\") }}</ul><p>Please review and approve to proceed.</p>",
+        "options": {}
+      },
+      "id": "6cb62f40-c5f8-4cda-81ba-c682dda84957",
+      "name": "Gmail Approval Request",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2288,
+        752
+      ],
+      "webhookId": "12d3195e-0805-4ebc-bb8c-8d167abc0435",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DNbi1nV8sQohtbAz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1rB2iqyXjjAgH5UpQHAUgjVZl0hxD9SXDMtm_27VrrBk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "46eee2fa-e8b1-4ec5-b8e9-aeab88ae337f",
+      "name": "Google Sheets Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2512,
+        816
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "UKvPpPL26yYPgklT",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "saideepakch0@gmail.com",
+        "subject": "=Daily Digest - {{ $now.toFormat(\"MMMM d, yyyy\") }}",
+        "message": "=<h1>Daily Content Digest</h1><h2>{{ $json.title }}</h2><p><strong>Type:</strong> {{ $(\"Input Classifier\").item.json.output.type }}</p><p><strong>Urgency:</strong> {{ $json.urgency }}/10</p><p><strong>Summary:</strong> {{ $json.summary }}</p><h3>Action Items:</h3><ul>{{ $json.actionItems.map(item => \"<li>\" + item + \"</li>\").join(\"\") }}</ul><p>Logged to Notion and Google Sheets successfully.</p>",
+        "options": {}
+      },
+      "id": "01ca5de2-aca3-4198-b107-3393e4015344",
+      "name": "Gmail Send Digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2736,
+        816
+      ],
+      "webhookId": "3d44af0a-5f52-48b4-ae5d-4f16faec7d6d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DNbi1nV8sQohtbAz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Content Intake System",
+        "formDescription": "Submit your emails, tasks, goals, or documents for AI-powered processing and organization.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Content Type",
+              "fieldType": "dropdown",
+              "fieldName": "contentType",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Email"
+                  },
+                  {
+                    "option": "Task"
+                  },
+                  {
+                    "option": "Goal"
+                  },
+                  {
+                    "option": "Document"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Content",
+              "fieldType": "textarea",
+              "fieldName": "content",
+              "placeholder": "Paste your email, task description, goal, or document text here...",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Upload Document (optional)",
+              "fieldType": "file",
+              "fieldName": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf,.doc,.docx,.txt"
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": true,
+          "buttonLabel": "Submit for Processing",
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Thank you! Your content has been received and is being processed. You will receive a digest email shortly."
+            }
+          }
+        }
+      },
+      "id": "f02812bd-03e5-47b2-b565-2318cba75b00",
+      "name": "Content Intake Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        816
+      ],
+      "webhookId": "4df4aefa-2632-47e0-a5f7-39d4c2041b8e"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "996f15f7-092b-4036-9617-dce5d0481694",
+      "name": "Classifier Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        1040
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "aaPE3lHYed5cXnSW",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "0b249f6b-13f3-4132-9d86-3b1674249aae",
+      "name": "Email Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        336
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "aaPE3lHYed5cXnSW",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "0a570fe3-3f11-4240-bfef-e8ad650e8d04",
+      "name": "Study Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        736
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "aaPE3lHYed5cXnSW",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "a5096ae9-5668-4097-b257-52ed7d9fddeb",
+      "name": "Goal Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        1136
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "aaPE3lHYed5cXnSW",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "c83ee894-8d8b-4f64-b5fd-6b36c96cf12f",
+      "name": "Action Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        1648
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "aaPE3lHYed5cXnSW",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Input Classifier": {
+      "main": [
+        [
+          {
+            "node": "Route by Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classification Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Input Classifier",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Type": {
+      "main": [
+        [
+          {
+            "node": "Email Prioritizer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Study Planner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Goal Tracker",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract From File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Prioritizer": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Prioritizer Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Email Prioritizer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Validate Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Study Planner": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Study Planner Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Study Planner",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Goal Tracker Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Goal Tracker",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract From File": {
+      "main": [
+        [
+          {
+            "node": "Action Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action Extractor Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Action Extractor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Schema": {
+      "main": [
+        [
+          {
+            "node": "Check Urgency",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Urgency": {
+      "main": [
+        [
+          {
+            "node": "Gmail Approval Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Sheets Append",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Approval Request": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Append",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Append": {
+      "main": [
+        [
+          {
+            "node": "Gmail Send Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Goal Tracker": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Action Extractor": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Content Intake Form": {
+      "main": [
+        [
+          {
+            "node": "Input Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classifier Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Input Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Prioritizer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Study Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Study Planner",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Goal Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Goal Tracker",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Action Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "18d1cbb1-a3c8-4a60-9f3c-9c56eddad576",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3a145113e53bc219991bfd3d44a6f89ad66c6f8d1229163548a9ca89281a2b92"
+  },
+  "nodeGroups": [],
+  "id": "4xOl9SuytxPA6sIt",
+  "tags": []
+}
